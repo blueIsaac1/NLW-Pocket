@@ -1,4 +1,5 @@
 const { select, input, checkbox } = require('@inquirer/prompts')
+const fs = require("fs").promises
 function start() {
     let count = 1
     while(count < 10){
@@ -6,12 +7,20 @@ function start() {
         count = count + 1
     }
 }
-let meta = {
-    value: "Codar em python",
-    checked: false
-};
 let mensagem = "Bem-vindo"
-let metas= [meta];
+let metas
+const carregarMetas = async () => {
+    try{
+        const dados = await fs.readFile("metas.json", "utf-8")
+        metas = JSON.parse(dados)
+    }
+    catch(erro){
+        metas = []
+    }
+};
+const salvarMetas = async () => {
+    await fs.writeFile("metas.json", JSON.stringify(metas, null, 2))
+}
 const cadastrarMetas = async () => {
     const meta = await input({ message: "Digite a meta:" })
 
@@ -112,8 +121,10 @@ const mostrarMensagem = () => {
     }
 };
 const menu = async () => {
+    await carregarMetas()
     while(true) {
-        mostrarMensagem()
+        await mostrarMensagem()
+        await salvarMetas()
         const opcao = await select({
             message: ">",
             choices: [
@@ -143,7 +154,7 @@ const menu = async () => {
                 await metasAbertas();
                 break;
             case "sair":
-                mensagem("Saindo...");
+                mensagem = ("Saindo...");
                 return;
         }    
     }
